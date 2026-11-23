@@ -77,6 +77,15 @@ Model: https://huggingface.co/shrikantgrh/indian_financial_advisor
 Source project:
 https://github.com/ShrikantGourh/indian-financial-advisor-learning
 
+## Where to find the trained weights
+
+The model-tree panel shows the base-model/adapter relationship; it is not the
+repository file browser. Open **Files and versions** to see
+[`adapter_model.safetensors`](https://huggingface.co/shrikantgrh/indian_financial_advisor/blob/main/adapter_model.safetensors)
+(17,640,136 bytes). This file contains the learned LoRA parameters. The repo
+does not contain a merged copy of all Qwen2.5-0.5B model weights; inference
+loads this adapter on top of the separately published base checkpoint.
+
 ## Limitations and risk
 
 - The dataset is tiny, synthetic/hypothetical, and not an expert-reviewed

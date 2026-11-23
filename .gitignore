@@ -1,0 +1,8 @@
+.venv/
+.env
+__pycache__/
+*.py[cod]
+artifacts/
+data/captures/
+data/snapshots-*.jsonl
+.hf-staging/

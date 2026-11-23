@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Build plan, project structure, decisions, and progress log for Indian Financial Advisor.">
+  <title>Indian Financial Advisor — Project Build Log</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #18212f;
+      --muted: #526174;
+      --line: #d7e0e8;
+      --paper: #fff;
+      --canvas: #f2f6f9;
+      --blue: #145da0;
+      --green: #176b48;
+      --amber: #805100;
+      --red: #9c3030;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    main {
+      width: min(100% - 32px, 1040px);
+      margin: 32px auto 64px;
+    }
+
+    header, section, details.card {
+      margin: 0 0 16px;
+      padding: 22px 26px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--paper);
+      box-shadow: 0 2px 8px #18334c0a;
+    }
+
+    h1, h2, h3 { line-height: 1.25; }
+    h1 { margin: 0 0 8px; font-size: clamp(1.7rem, 5vw, 2.5rem); }
+    h2 { margin: 0 0 14px; font-size: 1.35rem; }
+    h3 { margin: 18px 0 6px; font-size: 1.05rem; }
+    p { margin: 8px 0; }
+    a { color: var(--blue); }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    code { overflow-wrap: anywhere; }
+    pre {
+      overflow-x: auto;
+      padding: 14px;
+      border-radius: 8px;
+      background: #f1f5f8;
+      font-size: .9rem;
+    }
+
+    .subtle { color: var(--muted); }
+    .badge {
+      display: inline-block;
+      margin: 4px 6px 0 0;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: #e8f1fa;
+      color: #17466e;
+      font-size: .82rem;
+      font-weight: 650;
+    }
+    .status-done { color: var(--green); font-weight: 700; }
+    .status-pending { color: var(--amber); font-weight: 700; }
+    .status-not-done { color: var(--red); font-weight: 700; }
+    .callout {
+      padding: 12px 15px;
+      border-left: 4px solid var(--amber);
+      background: #fff8e9;
+    }
+    .success { border-left-color: var(--green); background: #eef9f2; }
+    .test-panel label { display: block; margin-top: 12px; font-weight: 650; }
+    .test-panel select, .test-panel textarea {
+      display: block;
+      width: 100%;
+      margin-top: 5px;
+      padding: 10px 12px;
+      border: 1px solid #aebdca;
+      border-radius: 7px;
+      color: var(--ink);
+      background: #fff;
+      font: inherit;
+    }
+    .test-panel textarea { min-height: 110px; resize: vertical; }
+    .test-panel button {
+      margin-top: 14px;
+      padding: 10px 18px;
+      border: 0;
+      border-radius: 7px;
+      color: #fff;
+      background: var(--blue);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .test-panel button:disabled { cursor: wait; opacity: .65; }
+    .test-answer {
+      min-height: 70px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    details {
+      margin: 10px 0;
+      padding: 11px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+    details.card { padding: 20px 24px; }
+    summary { cursor: pointer; font-weight: 700; }
+    summary:focus-visible, a:focus-visible {
+      outline: 3px solid #78b8f1;
+      outline-offset: 3px;
+    }
+    li { margin: 5px 0; }
+    .tree { white-space: pre-wrap; }
+    .small { font-size: .9rem; }
+
+    @media (max-width: 600px) {
+      main { width: min(100% - 18px, 1040px); margin-top: 10px; }
+      header, section, details.card { padding: 17px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Indian Financial Advisor</h1>
+    <p>Project plan, file-by-file guide, implementation notes, and progress log.</p>
+    <span class="badge">Base: Qwen2.5-0.5B-Instruct</span>
+    <span class="badge">Fine-tuning: LoRA</span>
+    <span class="badge">Runtime target: Ollama</span>
+    <span class="badge">Target name: indian_financial_advisor</span>
+    <p class="subtle small">Last updated: 2026-11-23. This log describes the current workspace state; planned work is clearly marked and is not claimed as completed.</p>
+  </header>
+
+  <section class="test-panel" id="model-test">
+    <h2>Try a local model</h2>
+    <p>Enter a prompt and submit it to a local model. Installed Ollama models are available directly; to test the trained LoRA pilot, start <code>scripts/serve_adapter.py</code> as described in the README and refresh this page. The pilot has an observed arithmetic failure, so use it only for experimentation.</p>
+    <div class="callout">
+      This page calls the local Ollama API and, when selected, the loopback-only pilot API on <code>127.0.0.1:11435</code>. Start the corresponding service(s). If your browser blocks local requests from a <code>file://</code> page, serve this folder from <code>http://localhost</code> or <code>http://127.0.0.1</code> (for example with VS Code Live Server).
+    </div>
+    <p id="ollamaStatus" class="subtle" role="status" aria-live="polite">Checking local model servers…</p>
+    <button id="refreshModels" type="button">Refresh models</button>
+    <form id="ollamaTestForm">
+      <label for="ollamaModel">Local model</label>
+      <select id="ollamaModel" name="model" required>
+        <option value="qwen2.5:0.5b">qwen2.5:0.5b (base; not fine-tuned)</option>
+      </select>
+      <label for="ollamaPrompt">Prompt</label>
+      <textarea id="ollamaPrompt" name="prompt" required>Using hypothetical revenue of ₹500 crore and net profit of ₹50 crore, calculate net margin and show the formula.</textarea>
+      <button id="ollamaSubmit" type="submit">Submit prompt</button>
+    </form>
+    <h3>Model response</h3>
+    <pre id="ollamaAnswer" class="test-answer" aria-live="polite">No response yet.</pre>
+  </section>
+
+  <section id="purpose">
+    <h2>1. Goal and operating boundaries</h2>
+    <p>The project is intended to become a candid, data-grounded Indian-market research assistant for equities and gold. “Uncensored” is interpreted as direct, transparent analysis that discusses downside risk and uncertainty—not as permission to invent current facts, guarantee returns, or give individualized buy/sell instructions.</p>
+    <div class="callout">
+      <strong>Important limitation:</strong> A fine-tuned language model is not a live quote feed, licensed financial adviser, or reliable prediction engine. Any real-time analysis needs a separately maintained data connector that supplies dated observations and provenance at inference time. The model must distinguish sourced facts from analysis and scenarios.
+    </div>
+    <h3>Intended answer style</h3>
+    <ul>
+      <li>Give concise, direct explanations of market facts, indicators, and risks.</li>
+      <li>Show the source and observation time for changing market data; say when data is missing or stale.</li>
+      <li>Separate observed values, calculations, interpretation, and hypothetical scenarios.</li>
+      <li>Do not promise outcomes, claim certainty, fabricate data, or infer a person’s suitability.</li>
+      <li>Do not place trades or turn general analysis into personalized portfolio instructions.</li>
+    </ul>
+    <details>
+      <summary>Learning theory — what the PyTorch/LoRA pipeline does</summary>
+      <p>Qwen2.5-0.5B-Instruct is a decoder-only transformer that predicts the next token from prior context. Supervised fine-tuning teaches it from chat examples by minimizing token-level cross-entropy on assistant responses. In <code>scripts/train.py</code>, user/system prompt tokens and padding use label <code>-100</code>, which PyTorch's loss ignores.</p>
+      <p>The trainable checkpoint is <code>Qwen/Qwen2.5-0.5B-Instruct</code> loaded with Transformers into PyTorch; the quantized Ollama runtime copy is not trained. PEFT LoRA adds small trainable low-rank matrices to selected attention and feed-forward projections while freezing the base weights. This reduces the number of learned parameters and the adapter size.</p>
+      <p>The recorded run used CPU float32, LoRA rank 8, alpha 16, dropout 0.05, one epoch, sequence length 512, batch size 1, gradient accumulation 8, and learning rate 2e-4. It trained on 36 scenarios and evaluated on 8. Train loss was 3.4241; validation loss was 3.0805. Loss is a training diagnostic, not proof of correct financial reasoning.</p>
+      <p>The host reports Ubuntu x86_64, Intel Core i5-3210M at 2.50 GHz, four logical CPUs, and 15 GiB RAM. The user identifies this machine as a mid-2012 MacBook. The CPU run took about 16 minutes. The educational success is completing the end-to-end training pipeline on this older hardware; the adapter did not pass its arithmetic quality check.</p>
+    </details>
+  </section>
+
+  <details class="card" open>
+    <summary>2. Plan and status by phase</summary>
+    <details open>
+      <summary><span class="status-done">Done</span> — Project scaffold and workflow</summary>
+      <ul>
+        <li>Create a self-contained project folder in the VS Code workspace.</li>
+        <li>Record how the Ollama base model differs from a trainable Hugging Face checkpoint.</li>
+        <li>Add a JSONL conversation format, scenario-driven starter examples, dataset validation, a LoRA training script, adapter merging, and an Ollama export script.</li>
+      </ul>
+    </details>
+    <details open>
+      <summary><span class="status-pending">In progress</span> — Add curated, timestamped market data</summary>
+      <ul>
+        <li>Captured one NIFTY 50 quote and one MCX GOLD December futures quote with Copilot's integrated browser on 2026-11-23. The screenshots and source-tagged records are separate from fine-tuning examples.</li>
+        <li>Choose sources whose terms permit the intended use; prefer official exchange, regulator, central-bank, and commodity-market publications.</li>
+        <li>For each observation retain instrument/contract, units, exchange/source, source URL, observation timestamp and timezone, retrieval timestamp, and any transformations.</li>
+        <li>Keep raw observations separate from derived indicators and generated explanations. Validate missing values, splits, units, and market holidays.</li>
+        <li>Use the workflow recorder only to document a human-visible research workflow. Its HTML screenshots are not structured or license-cleared training data and must not be treated as a price database.</li>
+      </ul>
+    </details>
+    <details>
+      <summary><span class="status-pending">Next</span> — Build a real-time data path</summary>
+      <ul>
+        <li>Implement a source-specific API/market-data connector separately from model weights.</li>
+        <li>At query time provide a compact, timestamped snapshot and computed indicators to the model; do not rely on memorized weights for current prices.</li>
+        <li>Add stale-data handling, source attribution, rate-limit/error reporting, and validation before displaying analysis.</li>
+        <li>Use historical snapshots only when their data license and quality are understood. Avoid training on screenshots or unverified scraped pages.</li>
+      </ul>
+    </details>
+    <details>
+      <summary><span class="status-pending">Next</span> — Expand and review training/evaluation sets</summary>
+      <ul>
+        <li>Create reviewed examples covering Indian equities, company filings, market indicators, gold drivers, currency effects, and downside scenarios.</li>
+        <li>Keep a time-separated holdout set to reduce leakage from repeated or future observations.</li>
+        <li>Measure factual grounding, timestamp accuracy, arithmetic, risk coverage, uncertainty, and refusal of personalized trade instructions.</li>
+        <li>Do not start a costly fine-tune until the data and evaluation set are reviewed.</li>
+      </ul>
+    </details>
+    <details>
+      <summary><span class="status-pending">Pipeline complete — training succeeded; model quality gate failed</span></summary>
+      <ul>
+        <li>Install the Python dependencies and compatible PyTorch build.</li>
+        <li>Train a LoRA adapter from the compatible Qwen2.5-0.5B-Instruct Hugging Face checkpoint.</li>
+        <li>Review validation results, merge the adapter, convert/quantize with llama.cpp, and import the GGUF into Ollama.</li>
+        <li>Test the exact generated model under the name <code>indian_financial_advisor</code>, including stale/missing data and risky prompts.</li>
+      </ul>
+    </details>
+    <p class="subtle small">The CPU LoRA training run did complete. A permitted continuous data feed, larger reviewed evaluation set, quality-passing adapter, and Ollama export remain planned work.</p>
+  </details>
+
+  <details class="card" open>
+    <summary>3. Current project folder — every file</summary>
+    <p>For public sharing, local model artifacts, market screenshots, and raw market snapshots are excluded. The latter are retained only in this workspace because their redistribution rights were not verified.</p>
+    <pre class="tree">indian_financial_advisor/
+├── .gitignore
+├── README.md
+├── MODEL_CARD.md
+├── build_log.html
+├── requirements.txt
+├── data/
+│   ├── captures/
+│   │   ├── mcx-gold-futures-2026-11-23.png
+│   │   └── nifty50-2026-11-23.png
+│   ├── snapshots-2026-11-23.jsonl
+│   ├── train.jsonl
+│   └── validation.jsonl
+└── scripts/
+    ├── export_ollama.sh
+    ├── merge_adapter.py
+    ├── serve_adapter.py
+    ├── train.py
+    └── validate_data.py</pre>
+    <details>
+      <summary><code>README.md</code> — setup and run instructions</summary>
+      <p>Explains the base-checkpoint limitation, setup, fine-tuning, merge/export steps, and the sample-data caveat.</p>
+    </details>
+    <details>
+      <summary><code>MODEL_CARD.md</code> — experimental adapter card</summary>
+      <p>Records the training configuration and hardware, explains the adapter, and reports the failed arithmetic check and use limitations for any future Hugging Face publication.</p>
+    </details>
+    <details>
+      <summary><code>requirements.txt</code> — Python packages</summary>
+      <p>Lists Transformers, PEFT, and Accelerate. Install a PyTorch build appropriate for the machine separately as the README instructs.</p>
+    </details>
+    <details>
+      <summary><code>.gitignore</code> — local outputs</summary>
+      <p>Excludes the local virtual environment, Python bytecode, and large generated model artifacts.</p>
+    </details>
+    <details>
+      <summary><code>data/snapshots-2026-11-23.jsonl</code> — one-time market observations</summary>
+      <p>Source-attributed NIFTY 50 and MCX GOLD futures quotes with page timestamps, units, changes, provenance, and freshness caveats. Not an exchange feed or fine-tuning data.</p>
+    </details>
+    <details>
+      <summary><code>data/captures/*.png</code> — browser screenshot evidence</summary>
+      <p>Visible Copilot-browser captures for the NIFTY 50 and MCX GOLD quote pages. Each image corresponds to a source URL recorded in the JSONL file.</p>
+    </details>
+    <details>
+      <summary><code>data/train.jsonl</code> — starter fine-tuning records</summary>
+      <p>36 scenario-driven conversations covering company results, financial ratios, Indian index behavior, chart indicators, gold futures/currency, freshness, risk, and backtest leakage. Numeric examples are hypothetical unless explicitly source-attributed; records have not been independently expert-reviewed.</p>
+    </details>
+    <details>
+      <summary><code>data/validation.jsonl</code> — 8 held-out validation scenarios</summary>
+      <p>Eight held-out scenarios for arithmetic, stale data, gold futures, personal-allocation boundaries, currency effects, and temporal leakage. This set is too small to establish model quality.</p>
+    </details>
+    <details>
+      <summary><code>scripts/serve_adapter.py</code> — local pilot inference</summary>
+      <p>Loads the trained PEFT adapter and base checkpoint into a loopback-only HTTP service so the HTML test form can exercise the actual pilot without importing it into Ollama.</p>
+    </details>
+    <details>
+      <summary><code>scripts/validate_data.py</code> — JSONL checks</summary>
+      <p>Checks record structure, roles, non-empty messages, and that each conversation ends with an assistant response.</p>
+    </details>
+    <details>
+      <summary><code>scripts/train.py</code> — LoRA fine-tuning</summary>
+      <p>Loads <code>Qwen/Qwen2.5-0.5B-Instruct</code>, masks non-assistant tokens from the loss, and trains/saves a PEFT adapter. It does not train from Ollama’s quantized runtime copy.</p>
+    </details>
+    <details>
+      <summary><code>scripts/merge_adapter.py</code> — merge step</summary>
+      <p>Loads the base checkpoint and adapter, merges their weights, and saves a Hugging Face model directory for conversion.</p>
+    </details>
+    <details>
+      <summary><code>scripts/export_ollama.sh</code> — Ollama export</summary>
+      <p>Uses llama.cpp to convert and quantize the merged model, writes an Ollama Modelfile, and creates <code>indian_financial_advisor</code>.</p>
+    </details>
+    <details>
+      <summary><code>build_log.html</code> — this progress log</summary>
+      <p>This file. It is a hand-maintained project record, not an automatic event logger.</p>
+    </details>
+  </details>
+
+  <details class="card" open>
+    <summary>4. Work completed and verification</summary>
+    <ol>
+      <li>Inspected the workspace and confirmed the local Ollama installation includes <code>qwen2.5:0.5b</code> (reported size 397 MB).</li>
+      <li>Created the project scaffold, sample JSONL records, LoRA fine-tuning/merge/export scripts, setup documentation, and this HTML log.</li>
+      <li>Ran the dataset validator successfully after expansion: 36 training records and 8 validation records passed.</li>
+      <li>Ran Python syntax compilation and <code>bash -n</code> on the export script successfully.</li>
+      <li>Installed CPU-only PyTorch 2.15.0 and fine-tuning dependencies in the project virtual environment; the machine has no detected NVIDIA GPU.</li>
+      <li>Added an HTML prompt form that discovers local Ollama models and submits prompts to <code>/api/chat</code>; tested from both <code>file://</code> and a localhost-served page.</li>
+      <li>Added <code>scripts/serve_adapter.py</code>, loaded the trained LoRA adapter on loopback port 11435, and verified the HTML model list discovers <code>indian_financial_advisor:pilot-cpu</code>.</li>
+      <li>Submitted the sample margin prompt to the actual pilot adapter. It answered 90% instead of 10%; the pilot remains available for testing only and is not suitable for financial use.</li>
+    </ol>
+    <div class="callout success">
+      <strong>Training-pipeline success; model-quality gate failed:</strong> The one-epoch PyTorch/LoRA run completed on CPU and saved an adapter on the user-identified mid-2012 MacBook running Ubuntu. The actual pilot returned 90% instead of the correct 10% on the hypothetical margin check. It is not suitable for financial use or Ollama export. There is no continuous market-data feed and no final Ollama model.
+    </div>
+  </details>
+
+  <details class="card">
+    <summary>5. Workflow recorder and Copilot browser capture</summary>
+    <p>The workspace contains <code>workflow_recorder_agent.py</code>. It opens a persistent Chrome profile, records browser actions/screenshots, and writes a separate workflow HTML report. It is a browser workflow recorder—not a finance data API, market-data terminal, or dataset builder.</p>
+    <ul>
+      <li>It may require a configured external LLM provider credential and browser dependencies. Do not put credentials in the project log or training data.</li>
+      <li>The local recorder was not run because no supported provider credential or OpenAI SDK was configured. At the user's direction, Copilot's integrated browser was used to inspect public quote pages and save screenshots locally.</li>
+      <li>Direct navigation to the NSE live-index page failed. The NIFTY 50 quote came from Google Finance; its exchange delay was not independently verified.</li>
+      <li>The MCX public quote page showed the GOLD futures quote and an “As on” time. Its chart emitted a browser-side Highcharts error.</li>
+      <li>Browser page text and screenshots need source, timestamp, licensing, and independent correctness review before broader use. Two one-time screenshots do not constitute a real-time feed or training dataset.</li>
+    </ul>
+  </details>
+
+  <details class="card">
+    <summary>6. Copilot capture ledger and screenshots</summary>
+    <p>Captured locally on 2026-11-23. These are point-in-time observations, not investment signals; local screenshots and raw snapshots are excluded from public sharing because redistribution rights were not verified.</p>
+    <ul>
+      <li><a href="https://www.google.com/finance/quote/NIFTY_50:INDEXNSE">Google Finance — NIFTY 50</a>: captured at 14:51:39 IST. Quote delay was not independently verified. The screenshot and raw snapshot remain local-only.</li>
+      <li><a href="https://www.mcxindia.com/en/market-data/get-quote/FUTCOM/GOLD/04DEC2026">MCX — GOLD FUTCOM, 04 Dec 2026 expiry</a>: captured on 23 Nov 2026. This is a futures quote, not spot or retail gold; its screenshot and raw snapshot remain local-only.</li>
+    </ul>
+    <p>The screenshot files remain in <code>data/captures/</code> locally; the public source repository omits them.</p>
+  </details>
+
+  <details class="card">
+    <summary>7. Reproducible commands</summary>
+    <p>Run from the project directory after installing dependencies:</p>
+    <pre>python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python scripts/validate_data.py
+.venv/bin/python scripts/train.py --train data/train.jsonl --validation data/validation.jsonl --epochs 1 --max-length 512 --output-dir artifacts/pilot-cpu</pre>
+    <p>This reproduces the small training run; it is only a pipeline smoke test. For a useful market-research model, replace the tiny set with substantial, licensed, reviewed, and time-stamped data, and add robust evaluation first.</p>
+  </details>
+
+  <details class="card" open>
+    <summary>8. Append-only progress notes</summary>
+    <details open>
+      <summary>2026-11-23 — Project scaffold and this log</summary>
+      <ul>
+        <li>Added initial training/export pipeline and starter examples.</li>
+        <li>Verified the starter data and script syntax.</li>
+        <li>Added this collapsible project plan and file-by-file explanation, then linked it from the README.</li>
+        <li>Retuned the project wording from “educational assistant” to direct, evidence-led market analysis while retaining stale-data, personalization, and risk safeguards.</li>
+        <li>Added the project folder to the active VS Code workspace.</li>
+        <li>Used Copilot's integrated browser for public-page screenshots after confirming the standalone workflow recorder had no configured provider credential/SDK.</li>
+        <li>Saved the NIFTY 50 and MCX GOLD futures screenshots and source-tagged point-in-time records. No bulk scrape, licensed feed, or continuous live connector was used.</li>
+        <li>Expanded the training corpus to 36 scenario-driven records and validation to 8 held-out records. Hypothetical values are labeled; the examples are for an initial smoke test, not an expert-reviewed production corpus. The validator, Python syntax checks, and export-shell syntax check passed after the update.</li>
+        <li>Installed CPU-only PyTorch and fine-tuning dependencies in the ignored project virtual environment. The first pilot exposed a gradient-checkpointing backward error; switched checkpointing to non-reentrant mode and will rerun before claiming a successful training pass.</li>
+        <li>Completed a one-epoch CPU LoRA pilot on 36 training / 8 validation records with max sequence length 512. Train loss: 3.4241; validation loss: 3.0805. Adapter saved under <code>artifacts/pilot-cpu/</code>.</li>
+        <li>Loaded the adapter and ran an arithmetic inference smoke test with an explicit attention mask. It returned the wrong net-margin formula/result for hypothetical revenue ₹500 crore and net profit ₹50 crore. Treat this as a failed quality check; do not export or use the pilot adapter for financial analysis.</li>
+        <li>Added the build-log test panel and submitted its default hypothetical margin prompt to local Ollama's installed <code>qwen2.5:0.5b</code> base model; it returned 10%. This verifies the UI/API connection, not the pilot adapter or financial reliability.</li>
+        <li>Started the local adapter inference service on <code>127.0.0.1:11435</code>. The build-log selector now offers the real trained adapter as <code>indian_financial_advisor:pilot-cpu</code>; a test returned the incorrect 90% net-margin answer, and that failure is prominently disclosed.</li>
+        <li>Prepared educational documentation distinguishing successful CPU training-pipeline execution from the failed arithmetic quality check. The user-identified mid-2012 MacBook host's observed CPU/RAM/OS details, LoRA settings, dataset size, and loss values are recorded for learning.</li>
+        <li>After the user configured publishing tokens locally, published the experimental adapter and its transparent model card to <a href="https://huggingface.co/shrikantgrh/indian_financial_advisor">Hugging Face</a>. Verified the repository contains the card, adapter configuration, and adapter weights. The GitHub source repository is the remaining publication step.</li>
+        <li>Next: improve and independently review the corpus, add automated arithmetic/factual evals, and rerun before considering model merge or Ollama export.</li>
+        <li>Validated both snapshot JSONL records, confirmed both PNG screenshots are present, and parsed the updated HTML successfully.</li>
+        <li>Remaining: review and expand the corpus, add automated arithmetic/factual evaluations and a permitted data feed, improve the adapter, rerun quality gates, and only then consider merging/exporting it.</li>
+      </ul>
+    </details>
+  </details>
+
+  <footer class="subtle small">
+    <p>Generated for the local workspace project. Update this log when implementation status changes; keep planned, attempted, and verified work distinct.</p>
+  </footer>
+</main>
+<script>
+  (() => {
+    const ollamaApiBase = "http://localhost:11434";
+    const adapterApiBase = "http://127.0.0.1:11435";
+    const pilotName = "indian_financial_advisor:pilot-cpu";
+    const modelSelect = document.getElementById("ollamaModel");
+    const status = document.getElementById("ollamaStatus");
+    const form = document.getElementById("ollamaTestForm");
+    const submit = document.getElementById("ollamaSubmit");
+    const refresh = document.getElementById("refreshModels");
+    const answer = document.getElementById("ollamaAnswer");
+    const modelEndpoints = new Map();
+
+    async function loadModels() {
+      const available = [];
+      const issues = [];
+      modelEndpoints.clear();
+      try {
+        const response = await fetch(`${ollamaApiBase}/api/tags`);
+        if (!response.ok) throw new Error(`Ollama returned HTTP ${response.status}`);
+        const data = await response.json();
+        for (const model of Array.isArray(data.models) ? data.models : []) {
+          available.push({ name: model.name, label: `${model.name} (Ollama)` });
+          modelEndpoints.set(model.name, ollamaApiBase);
+        }
+      } catch (error) {
+        issues.push(`Ollama unavailable: ${error.message}`);
+      }
+
+      try {
+        const response = await fetch(`${adapterApiBase}/api/tags`);
+        if (!response.ok) throw new Error(`Pilot server returned HTTP ${response.status}`);
+        const data = await response.json();
+        for (const model of Array.isArray(data.models) ? data.models : []) {
+          available.push({ name: model.name, label: `${model.name} (experimental LoRA pilot)` });
+          modelEndpoints.set(model.name, adapterApiBase);
+        }
+      } catch (error) {
+        issues.push(`LoRA pilot offline: start scripts/serve_adapter.py (${error.message})`);
+      }
+
+      modelSelect.replaceChildren();
+      for (const model of available) {
+        const option = document.createElement("option");
+        option.value = model.name;
+        option.textContent = model.label;
+        modelSelect.append(option);
+      }
+      if (available.length === 0) {
+        status.textContent = `${issues.join(". ")}. Start a local model server, then refresh.`;
+        answer.textContent = "No local model is available.";
+        return;
+      }
+
+      const preferred = available.find((model) => model.name === pilotName)
+        || available.find((model) => model.name === "qwen2.5:0.5b")
+        || available[0];
+      modelSelect.value = preferred.name;
+      status.textContent = issues.length
+        ? `${issues.join(". ")}. Available: ${available.map((model) => model.name).join(", ")}.`
+        : "Ollama and the LoRA pilot server are connected. The pilot is experimental and has a known arithmetic error.";
+    }
+
+    refresh.addEventListener("click", () => {
+      status.textContent = "Refreshing local model list…";
+      loadModels();
+    });
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const prompt = document.getElementById("ollamaPrompt").value.trim();
+      const model = modelSelect.value;
+      const apiBase = modelEndpoints.get(model);
+      if (!prompt || !model || !apiBase) {
+        status.textContent = "Enter a prompt and select an available local model. Refresh the model list if needed.";
+        return;
+      }
+
+      submit.disabled = true;
+      answer.textContent = "Waiting for the local model…";
+      status.textContent = `Sending prompt to ${model} on this computer…`;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 180000);
+      try {
+        const response = await fetch(`${apiBase}/api/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model,
+            stream: false,
+            messages: [
+              {
+                role: "system",
+                content: "You are a direct, evidence-led Indian market research assistant. Use only facts supplied in the prompt; state when data or timestamps are missing; distinguish facts from analysis and scenarios; explain material risks. Do not invent current prices, give individualized buy/sell instructions, or promise returns."
+              },
+              { role: "user", content: prompt }
+            ]
+          }),
+          signal: controller.signal
+        });
+        if (!response.ok) {
+          const body = await response.text();
+          throw new Error(`Ollama returned HTTP ${response.status}: ${body}`);
+        }
+        const data = await response.json();
+        const content = data.message && data.message.content;
+        if (typeof content !== "string" || !content.trim()) {
+          throw new Error("Ollama returned no message content");
+        }
+        answer.textContent = content;
+        status.textContent = `Response received from ${data.model || model}. Check calculations and sources independently.`;
+      } catch (error) {
+        answer.textContent = "No answer received.";
+        status.textContent = error.name === "AbortError"
+          ? "Request timed out after 3 minutes."
+          : `Request failed: ${error.message}`;
+      } finally {
+        clearTimeout(timeout);
+        submit.disabled = false;
+      }
+    });
+
+    loadModels();
+  })();
+</script>
+</body>
+</html>

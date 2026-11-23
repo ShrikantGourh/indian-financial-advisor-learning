@@ -11,6 +11,10 @@ See [build_log.html](./build_log.html) for the collapsible plan, project
 structure, implementation notes, and current progress.
 See [MODEL_CARD.md](./MODEL_CARD.md) for the pilot's training details, intended
 use, limitations, and evaluation result.
+The experimental adapter is published at
+[shrikantgrh/indian_financial_advisor](https://huggingface.co/shrikantgrh/indian_financial_advisor).
+The public source repository is
+[ShrikantGourh/indian-financial-advisor-learning](https://github.com/ShrikantGourh/indian-financial-advisor-learning).
 
 > **Important:** This is an experimental market-analysis model, not a
 > registered financial adviser. It can analyze dated data supplied to it, but
